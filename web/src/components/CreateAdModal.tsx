@@ -8,20 +8,10 @@ interface AdModalProps {
   isOpen: boolean;
   onModalClose: () => void;
 }
-
 interface Game {
   id: string;
   title: string;
 }
-
-const people = [
-  { name: "Wade Cooper" },
-  { name: "Arlene Mccoy" },
-  { name: "Devon Webb" },
-  { name: "Tom Cook" },
-  { name: "Tanya Fox" },
-  { name: "Hellen Schmidt" },
-];
 
 export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
   const [selected, setSelected] = useState();
@@ -34,6 +24,11 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
         setGames(data);
       });
   }, []);
+
+  // useEffect(() => {
+  //   const test = games.find((x) => x.id == selected) as Game
+  //   console.log(test.title);
+  // }, [selected]);
 
   return (
     <>
@@ -72,11 +67,11 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                         Qual o game?
                       </label>
 
-                      <Listbox value={games} onChange={setGames}>
+                      <Listbox value={selected} onChange={setSelected}>
                         <div className="relative">
                           <Listbox.Button className="relative w-full cursor-default rounded bg-zinc-900 py-3 px-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 sm:text-sm">
                             <span className="block truncate text-white">
-                              {'Selecione o game que deseja jogar'}
+                              {selected ? selected : 'Selecione um jogo'}
                             </span>
                             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                               <CaretDown
@@ -99,11 +94,11 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                                   className={({ active }) =>
                                     `relative cursor-default select-none py-2 pl-10 pr-4 ${
                                       active
-                                        ? "bg-amber-100 text-amber-900"
+                                        ? "bg-violet-100 text-zinc-900"
                                         : "text-gray-900"
                                     }`
                                   }
-                                  value={game.id}
+                                  value={game.title}
                                 >
                                   {({ selected }) => (
                                     <>
@@ -117,7 +112,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                                         {game.title}
                                       </span>
                                       {selected ? (
-                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-violet-600">
                                           <Check
                                             className="h-5 w-5"
                                             aria-hidden="true"
@@ -135,7 +130,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <label htmlFor="name">Seu nome (ou nickname)</label>
+                      <label htmlFor="name" className="font-semibold">Seu nome (ou nickname)</label>
                       <Input
                         id="name"
                         placeholder="Como te chamam dentro do game?"
@@ -144,7 +139,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
 
                     <div className="grid grid-cols-2 gap-6">
                       <div className="flex flex-col gap-2">
-                        <label htmlFor="yearsPlaying">
+                        <label htmlFor="yearsPlaying" className="font-semibold">
                           Joga há quantos anos?
                         </label>
                         <Input
@@ -154,14 +149,14 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label htmlFor="discord">Qual seu Discord?</label>
+                        <label htmlFor="discord" className="font-semibold">Qual seu Discord?</label>
                         <Input id="discord" placeholder="Usuario#0000" />
                       </div>
                     </div>
 
                     <div className="flex gap-6">
                       <div className="flex flex-col gap-2">
-                        <label htmlFor="weekDays">Quando costuma jogar?</label>
+                        <label htmlFor="weekDays" className="font-semibold">Quando costuma jogar?</label>
                         <div className="grid grid-cols-4 gap-2">
                           <button className="w-8 h-8 rounded bg-zinc-900">
                             D
@@ -187,7 +182,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 flex-1">
-                        <label htmlFor="yearsPlaying">
+                        <label htmlFor="yearsPlaying" className="font-semibold">
                           Qual horário do dia?
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -199,7 +194,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
 
                     <div className="mt-2 flex gap-2 text-sm">
                       <Input type="checkbox" />
-                      <span>Costumo me conectar ao chat de voz</span>
+                      <span className="font-semibold">Costumo me conectar ao chat de voz</span>
                     </div>
 
                     <footer className="mt-4 flex justify-end gap-4">
