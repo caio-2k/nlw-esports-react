@@ -3,6 +3,7 @@ import logoImg from "./assets/logo-nlw.svg";
 import { useState, useEffect } from "react";
 import { GameBanner } from "./components/GameBanner";
 import { CreateAdBanner } from "./components/createAdBanner";
+import axios from "axios";
 
 interface Game {
   id: string;
@@ -19,12 +20,9 @@ function App() {
 
   // dependecies array can be empty for fetch calls (cuz will run only once)
   useEffect(() => {
-    fetch("http://localhost:3333/games")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setGames(data);
-      });
+    axios('http://localhost:3333/games').then(response => {
+      setGames(response.data);
+    });
   }, []);
 
   return (

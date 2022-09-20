@@ -1,51 +1,74 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, FormEvent } from "react";
 import { CaretDown, Check, GameController } from "phosphor-react";
-import { Dialog, Transition } from "@headlessui/react";
-import { Input } from "./Form/input";
+import { Dialog } from "@headlessui/react";
+import { Input } from "./Form/Input";
 import { Listbox } from "@headlessui/react";
+import { CustomSelect } from "./Form/CustomSelect"
+import axios from "axios";
+import { CustomMultipleSelect } from "./Form/CustomMultipleSelect";
+import { Checkbox } from "./Form/CustomCheckbox";
 
 interface AdModalProps {
   isOpen: boolean;
   onModalClose: () => void;
 }
+
 interface Game {
   id: string;
   title: string;
 }
 
 const weekDays = [
-  { id: 1, name: "Domingo", abbr: "D" },
-  { id: 2, name: "Segunda-feira", abbr: "S" },
-  { id: 3, name: "Terça-feira", abbr: "T" },
-  { id: 4, name: "Quarta-feira", abbr: "Q" },
-  { id: 5, name: "Quinta-feira", abbr: "Q" },
-  { id: 6, name: "Sexta-feira", abbr: "S" },
-  { id: 7, name: "Sábado", abbr: "S" },
+  { id: 0, name: "Domingo", abbr: "D" },
+  { id: 1, name: "Segunda-feira", abbr: "S" },
+  { id: 2, name: "Terça-feira", abbr: "T" },
+  { id: 3, name: "Quarta-feira", abbr: "Q" },
+  { id: 4, name: "Quinta-feira", abbr: "Q" },
+  { id: 5, name: "Sexta-feira", abbr: "S" },
+  { id: 6, name: "Sábado", abbr: "S" },
 ];
-
-function useLog(name, property) {
-  useEffect(() => console.log(name, property), [name, property]);
-}
 
 export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
   const [selected, setSelected] = useState();
   const [games, setGames] = useState<Game[]>([]);
-  const [selectedWeekDays, setSelectedWeekDays] = useState([]);
+  const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>([]);
+  const [isChecked, setIsChecked] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch("http://localhost:3333/games")
-      .then((response) => response.json())
-      .then((data) => {
-        setGames(data);
-      });
+    axios("http://localhost:3333/games").then((response) => {
+      setGames(response.data);
+    });
   }, []);
 
-  useLog("selectedWeekDays", selectedWeekDays);
+  async function handleCreateAd(event: FormEvent) {
+    event.preventDefault()
 
-  // useEffect(() => {
-  //   const test = games.find((x) => x.id == selected) as Game
-  //   console.log(test.title);
-  // }, [selected]);
+    const formData = new FormData(event.target as HTMLFormElement);
+    const data = Object.fromEntries(formData);
+
+    if (!data.name) {
+      return;
+    }
+
+    try {
+      const currentSelectedGame = games.find((x) => x.title === selected)
+      
+      const response = await axios.post(`http://localhost:3333/games/${currentSelectedGame?.id}/ads`, {
+        name: data.name,
+        yearsPlaying: Number(data.yearsPlaying),
+        discord: data.discord,
+        weekDays: selectedWeekDays.map((item: any) => item.id),
+        hourStart: data.hourStart,
+        hourEnd: data.hourEnd,
+        useVoiceChannel: isChecked,
+      });
+    
+      alert('Anúncio criado com sucesso!');
+    } catch (err) {
+      console.log(err);
+      alert('Erro ao criar anúncio!');
+    }
+  }
 
   return (
     <>
@@ -59,70 +82,21 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <Dialog.Panel className="bg-[#2A2634] py-8 px-10 text-white rounded-lg w-[480px] shadow-lg shadow-black/25">
-              <Dialog.Title as="h3" className="text-3xl font-black">
+              <Dialog.Title as="h1" className="text-3xl font-black">
                 Publique um anúncio
               </Dialog.Title>
-              <form className="mt-8 flex flex-col gap-4">
+              <form onSubmit={handleCreateAd} className="mt-8 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="game" className="font-semibold">
                     Qual o game?
                   </label>
-
-                  <Listbox value={selected} onChange={setSelected}>
-                    <div className="relative">
-                      <Listbox.Button className="relative w-full cursor-default rounded bg-zinc-900 py-3 px-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 sm:text-sm">
-                        <span
-                          className={`block truncate ${
-                            selected ? "text-white" : "text-zinc-500"
-                          }`}
-                        >
-                          {selected ? selected : "Selecione um jogo"}
-                        </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <CaretDown
-                            className="h-5 w-5 text-gray-400"
-                            aria-hidden="true"
-                          />
-                        </span>
-                      </Listbox.Button>
-
-                      <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                        {games.map((game) => (
-                          <Listbox.Option
-                            key={game.id}
-                            className={({ active }) =>
-                              `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                active
-                                  ? "bg-violet-100 text-zinc-900"
-                                  : "text-gray-900"
-                              }`
-                            }
-                            value={game.title}
-                          >
-                            {({ selected }) => (
-                              <>
-                                <span
-                                  className={`block truncate ${
-                                    selected ? "font-medium" : "font-normal"
-                                  }`}
-                                >
-                                  {game.title}
-                                </span>
-                                {selected ? (
-                                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-violet-600">
-                                    <Check
-                                      className="h-5 w-5"
-                                      aria-hidden="true"
-                                    />
-                                  </span>
-                                ) : null}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </div>
-                  </Listbox>
+                  <CustomSelect 
+                    selected={selected}
+                    setSelected={setSelected}
+                    placeholder="Selecione um game"
+                    myArr={games}
+                    filterBy={(data: Game) => data.title}
+                  />
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -131,6 +105,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                   </label>
                   <Input
                     id="name"
+                    name="name"
                     placeholder="Como te chamam dentro do game?"
                   />
                 </div>
@@ -142,6 +117,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                     </label>
                     <Input
                       id="yearsPlaying"
+                      name="yearsPlaying"
                       type="number"
                       placeholder="Tudo bem ser ZERO"
                     />
@@ -150,7 +126,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                     <label htmlFor="discord" className="font-semibold">
                       Qual seu Discord?
                     </label>
-                    <Input id="discord" placeholder="Usuario#0000" />
+                    <Input id="discord" name="discord" placeholder="Usuario#0000" />
                   </div>
                 </div>
 
@@ -159,81 +135,32 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                     <label htmlFor="weekDays" className="font-semibold">
                       Quando costuma jogar?
                     </label>
-                    <Listbox
-                      as="div"
-                      value={selectedWeekDays}
-                      onChange={setSelectedWeekDays}
-                      className="relative"
-                      multiple
-                    >
-                      <Listbox.Button className="relative w-full cursor-default rounded bg-zinc-900 py-3 px-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 sm:text-sm">
-                        <span
-                          className={`block truncate ${
-                            selectedWeekDays.length
-                              ? "text-white font-bold"
-                              : "text-zinc-500"
-                          }`}
-                        >
-                          {selectedWeekDays.length
-                            ? selectedWeekDays.map((day) => day.abbr).join(", ")
-                            : "Selecione o(s) dia(s)"}
-                        </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <CaretDown
-                            className="h-5 w-5 text-gray-400"
-                            aria-hidden="true"
-                          />
-                        </span>
-                      </Listbox.Button>
-                      <Listbox.Options
-                        as="ul"
-                        className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-                      >
-                        {weekDays.map((day) => (
-                          <Listbox.Option
-                            value={day}
-                            key={day.id}
-                            as={Fragment}
-                          >
-                            {({ active, selected }) => (
-                              <li
-                                className={`
-                                    ${
-                                      active
-                                        ? "bg-violet-100 text-zinc-900"
-                                        : "text-gray-900"
-                                    } 
-                                    ${selected ? "font-medium" : "font-normal"} 
-                                    flex items-center gap-2 pl-8 py-1 px-2 transition-all relative
-                                    `}
-                              >
-                                {selected ? (
-                                  <Check className="w-4 text-violet-600 absolute left-2" />
-                                ) : null}
-                                {day.name}
-                              </li>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Listbox>
+                    <CustomMultipleSelect 
+                      selected={selectedWeekDays}
+                      setSelected={setSelectedWeekDays}
+                      placeholder="Selecione o(s) dia(s)"
+                      myArr={weekDays}
+                      filterBy={(data: any) => data.name}
+                      filterValue={(data: any) => data.abbr}
+                    />
                   </div>
                   <div className="flex flex-col gap-2 flex-1">
-                    <label htmlFor="yearsPlaying" className="font-semibold">
+                    <label htmlFor="hourStart" className="font-semibold">
                       Qual horário do dia?
                     </label>
                     <div className="grid grid-cols-2 gap-2">
-                      <Input id="hourStart" type="time" placeholder="De" />
-                      <Input id="hourEnd" type="time" placeholder="Até" />
+                      <Input id="hourStart" name="hourStart" type="time" placeholder="De" />
+                      <Input id="hourEnd" name="hourEnd" type="time" placeholder="Até" />
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-2 flex gap-2 text-sm">
-                  <Input id="voiceChat" type="checkbox" />
-                  <span className="font-semibold">
-                    Costumo me conectar ao chat de voz
-                  </span>
+                  <Checkbox
+                    isChecked={isChecked}
+                    setIsChecked={setIsChecked}
+                    labelText="Costumo me conectar ao chat de voz"
+                  />
                 </div>
 
                 <footer className="mt-4 flex justify-end gap-4">
@@ -246,7 +173,7 @@ export function CreateAdModal({ isOpen, onModalClose }: AdModalProps) {
                   </button>
                   <button
                     type="submit"
-                    className="bg-violet-500 px-5 h-12 rounded-md font-semibold flex items-center gap-3 hover:bg-violet-600 transition-colors"
+                    className="bg-violet-700 px-5 h-12 rounded-md font-semibold flex items-center gap-3 hover:bg-violet-800 transition-colors"
                   >
                     <GameController size={24} />
                     Encontrar duo

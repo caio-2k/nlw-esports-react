@@ -26,7 +26,7 @@ export function CreateAdBanner() {
             </span>
           </div>
           <button
-            className="py-3 px-4 bg-violet-500 hover:bg-violet-600 transition-colors text-white rounded flex item-center gap-3"
+            className="py-3 px-4 bg-violet-700 hover:bg-violet-800 transition-colors text-white font-semibold rounded flex item-center gap-3"
             onClick={openModal}
           >
             <MagnifyingGlassPlus size={24} />
